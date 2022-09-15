@@ -1,0 +1,121 @@
+# Variable 'amlcompute.clusterName' was defined in the Variables tab
+# Variable 'amlcompute.idleSecondsBeforeScaledown' was defined in the Variables tab
+# Variable 'amlcompute.maxNodes' was defined in the Variables tab
+# Variable 'amlcompute.minNodes' was defined in the Variables tab
+# Variable 'amlcompute.vmSize' was defined in the Variables tab
+# Variable 'azureml.location' was defined in the Variables tab
+# Variable 'azureml.resourceGroup' was defined in the Variables tab
+# Variable 'azureml.workspaceName' was defined in the Variables tab
+# Variable 'experiment.name' was defined in the Variables tab
+# Variable 'model.name' was defined in the Variables tab
+jobs:
+- job: Job_1
+  displayName: Agent job 1
+  pool:
+    vmImage: ubuntu-18.04
+  steps:
+  - checkout: self
+    clean: False
+  - task: UsePythonVersion@0
+    displayName: Use Python 3.6
+    inputs:
+      versionSpec: 3.6
+  - task: Bash@3
+    displayName: install python requirements
+    inputs:
+      filePath: package_requirement/install_requirements.sh
+      workingDirectory: package_requirement
+  - task: Bash@3
+    displayName: data test
+    inputs:
+      targetType: inline
+      script: >-
+        apt-get update
+
+        apt-get -y install gcc
+
+        apt-get -y install g++
+
+        apt-get -y install libgomp1
+
+        pytest training/train_test.py --doctest-modules --junitxml=junit/test-results.xml --cov=data_test --cov-report=xml --cov-report=html
+  - task: PublishTestResults@2
+    displayName: Publish Test Results **/test-*.xml
+    condition: succeededOrFailed()
+    inputs:
+      testResultsFiles: '**/test-*.xml'
+  - task: AzureCLI@2
+    displayName: Install Azure ML CLI
+    inputs:
+      connectedServiceNameARM: $(aml.sp)
+      scriptType: bash
+      scriptLocation: inlineScript
+      inlineScript: az extension add -n azure-cli-ml
+  - task: AzureCLI@2
+    displayName: Create Azure ML Workspace
+    inputs:
+      connectedServiceNameARM: $(aml.sp)
+      scriptType: bash
+      scriptLocation: inlineScript
+      inlineScript: az ml workspace create -g $(azureml.resourceGroup) -w $(azureml.workspaceName) -l $(azureml.location) --exist-ok --yes
+  - task: AzureCLI@2
+    displayName: Azure ML Compute Cluster
+    inputs:
+      connectedServiceNameARM: $(aml.sp)
+      scriptType: bash
+      scriptLocation: inlineScript
+      inlineScript: az ml computetarget create amlcompute -g $(azureml.resourceGroup) -w $(azureml.workspaceName) -n $(amlcompute.clusterName) -s $(amlcompute.vmSize) --min-nodes $(amlcompute.minNodes) --max-nodes $(amlcompute.maxNodes) --idle-seconds-before-scaledown $(amlcompute.idleSecondsBeforeScaledown)
+  - task: AzureCLI@2
+    displayName: upload data to datastore
+    inputs:
+      connectedServiceNameARM: $(aml.sp)
+      scriptType: bash
+      scriptLocation: inlineScript
+      inlineScript: az ml datastore upload -w $(azureml.workspaceName) -g $(azureml.resourceGroup) -n $(az ml datastore show-default -w $(azureml.workspaceName) -g $(azureml.resourceGroup) --query name -o tsv) -p data -u insurance --overwrite true
+  - task: Bash@3
+    displayName: Make Metadata and Model Directory
+    inputs:
+      targetType: inline
+      script: mkdir metadata && mkdir models
+  - task: AzureCLI@2
+    displayName: Training Model
+    inputs:
+      connectedServiceNameARM: $(aml.sp)
+      scriptType: bash
+      scriptLocation: inlineScript
+      inlineScript: az ml run submit-script -g $(azureml.resourceGroup) -w $(azureml.workspaceName) -e $(experiment.name) --ct $(amlcompute.clusterName) -d conda_dependencies.yml -c train_insurance -t ../metadata/run.json train_aml.py
+      cwd: training
+  - task: AzureCLI@2
+    displayName: Registering Model
+    inputs:
+      connectedServiceNameARM: $(aml.sp)
+      scriptType: bash
+      scriptLocation: inlineScript
+      inlineScript: az ml model register -g   $(azureml.resourceGroup) -w $(azureml.workspaceName) -n $(model.name) -f metadata/run.json --asset-path outputs/models/insurance_model.pkl -d "Classification Model for Filing a Claim Prediction" --tag "data"="insurance" --tag  "model"="classification" --model-framework ScikitLearn -t metadata/model.json
+  - task: AzureCLI@2
+    displayName: Downloading Model
+    inputs:
+      connectedServiceNameARM: $(aml.sp)
+      scriptType: bash
+      scriptLocation: inlineScript
+      inlineScript: az ml model download -g  $(azureml.resourceGroup) -w $(azureml.workspaceName) -i $(jq -r .modelId metadata/model.json) -t ./models --overwrite
+  - task: CopyFiles@2
+    displayName: 'Copy Files to: $(Build.ArtifactStagingDirectory)'
+    inputs:
+      SourceFolder: $(Build.SourcesDirectory)
+      Contents: >-
+        **/metadata/*
+
+        **/models/*
+
+        **/deployment/*
+
+        **/tests/integration/*
+
+        **/package_requirement/*
+      TargetFolder: $(Build.ArtifactStagingDirectory)
+  - task: PublishPipelineArtifact@1
+    displayName: Publish Pipeline Artifact
+    inputs:
+      path: $(Build.ArtifactStagingDirectory)
+      artifactName: landing
