@@ -2,7 +2,7 @@ Table of contents
 =================
 
 <!--ts-->
-   * [Create Azure Subscription](#Task 1 - Create Azure Subscription)
+   * [Create Azure Subscription](##task-1---create-azure-subscription)
    * [Usage](#usage)
       * [STDIN](#stdin)
       * [Local files](#local-files)
