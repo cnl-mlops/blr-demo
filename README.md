@@ -15,6 +15,29 @@
 ----------           **I signed up using GitHub**    ------------------------------
 
 
+
+
+
+
+================ **END OF TASK 1** =======================================
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # Task 2 - Create DevOps Subscription
 
 ## Azure Portal
@@ -52,6 +75,9 @@ Go to --> https://dev.azure.com/ --> Select "New Organization"
 Once created you will see below the console 
 
 ![image.png](/.attachments/image-a23b9268-f5b4-4024-9bba-d03220047395.png)
+
+
+================ **END OF TASK 2** =======================================
 
 # Task 3 - Create ML Workspace Manually (Testing)
 
@@ -108,7 +134,7 @@ Click Create
 ![image.png](/.attachments/image-e5b74e3f-d295-464d-9194-608db441c6ea.png)
 
 
-
+================ **END OF TASK 3** =======================================
 
 
 # Task 4 - Create Service Principal and ML Extension to Azure DevOps
@@ -155,6 +181,7 @@ Select Machine Learning
 ![image.png](/.attachments/image-cec4c2ed-b19a-4389-a9cf-2f6b18461607.png)
 
 
+================ **END OF TASK 4** =======================================
 
 # Task 5 - Create ML Workspace via IaaC using Azure DevOps
 
@@ -211,6 +238,8 @@ Check the Jobs for Pipeline Run logs
 
 ![image.png](/.attachments/image-16e3302a-0612-410e-8958-67f7dc406648.png)
 
+================ **END OF TASK 5** =======================================
+
 # Task 6 - Create ML Pipeline Continuous Integration
 
 
@@ -239,7 +268,7 @@ Check the Jobs for Pipeline Run logs
 
 ![image.png](/.attachments/image-5a4df59b-228b-4f46-821b-abd0b2a7345e.png)
 
-
+================ **END OF TASK 6** =======================================
 
 
 # Task 7 - Create Deployment Pipeline
@@ -266,6 +295,7 @@ Check the Jobs for Pipeline Run logs
 | azureml.resourceGroup |mlops-demo-blr-resource-group |
 | azureml.workspaceName | mlops-blr-ws-aml|
 | service.name.prod| insurance-ml-model-prod |
+| aks.agentCount| 3 |
 
 
 - Set the Agent Job 
@@ -311,10 +341,53 @@ Check the Jobs for Pipeline Run logs
 
 ![image.png](/.attachments/image-2dd1a4b8-7bbf-4b76-8543-80c6ac5857a2.png)
 
+- Validate the Status of Pipeline
+
+![image.png](/.attachments/image-80607ad7-995c-4037-b239-9cd8809c506f.png)
+
+================ **END OF TASK 7** =======================================
+
 # Task 8 - Validate Model Endpoint
 
 
 - Go to Azure Machine learning Workspace 
-- Validate the Model
+- Validate the Model - You can see the New Model Created
+
+![image.png](/.attachments/image-322a2b6e-7933-4ab8-abf7-15249227db3b.png)
+
+
 - Validate Endpoint.
-- Data and Datastore
+
+![image.png](/.attachments/image-97b15371-795d-4b06-8248-1677b68a9ba3.png)
+
+- Validate with test data - Step 1 - Get the Python Code
+  * Go to Assets - Endpoints -- Consume - Check Python and Take the code
+
+![image.png](/.attachments/image-888fba93-9e60-4dd2-b4eb-ff1992865b5a.png)
+
+- Validate with test data - Step 1 - Test in Notebook
+
+  * Go to Author - Notebook -- Consume - Create the Notebook file. -> Paste the Python Code. -> Change the Value of the Data as mentioned below --> Run the Cell
+
+Replace the line 8 Data with below Values
+
+`data = {'data': [[0,1,8,1,0,0,1,0,0,0,0,0,0,0,12,1,0,0,0.5,0.3,0.610327781,7,1,-1,0,-1,1,1,1,2,1,65,1,0.316227766,0.669556409,0.352136337,3.464101615,0.1,0.8,0.6,1,1,6,3,6,2,9,1,1,1,12,0,1,1,0,0,1],[4,2,5,1,0,0,0,0,1,0,0,0,0,0,5,1,0,0,0.9,0.5,0.771362431,4,1,-1,0,0,11,1,1,0,1,103,1,0.316227766,0.60632002,0.358329457,2.828427125,0.4,0.5,0.4,3,3,8,4,10,2,7,2,0,3,10,0,0,1,1,0,1]]}`
+
+
+![image.png](/.attachments/image-a517b1fa-588b-4606-b37f-f70c9d0eb39c.png)
+
+
+- Monitor using the Application Insights using the Application Insight URL from Endpoints.
+
+* Go to Assets - Endpoints - Details --> Application Insights URL --> Click the URL 
+
+![image.png](/.attachments/image-3ec140a2-05a0-42e8-a256-c0044e928f96.png)
+
+* You can see the Application throughput here.
+
+![image.png](/.attachments/image-84ac8ce0-7b11-4235-8f4c-462e984893e4.png)
+
+
+
+
+================ **END OF LAB** =======================================
