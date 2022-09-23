@@ -1,4 +1,4 @@
-[[_TOC_]]
+
 # Task 1 - Create Azure Subscription
 
 
